@@ -1,5 +1,6 @@
 import { handleSuccess, handleErrorServer } from "../Handlers/responseHandlers.js";
 import { updateUser, deleteUser } from "../services/user.service.js";
+import { userBodyValidation } from "../validations/usuario.validation.js";
 
 export function getPublicProfile(req, res) {
   handleSuccess(res, 200, "Perfil público obtenido exitosamente", {
@@ -21,9 +22,12 @@ export async function updateProfile(req, res) {
   const data = req.body;
 
   try {
-    if (!data.email && !data.password) {
-      return handleErrorClient(res, 400, "Email o contraseña son requeridos");
+
+    const { error } = userBodyValidation.validate(req.body);
+    if (error) {
+      return handleErrorServer(res, 400, "Valores ingresados no válidos", error.message);
     }
+
     const updatedUser = await updateUser(user.sub, data); // sub == id
 
     handleSuccess(res, 200, "Perfil actualizado exitosamente", {
